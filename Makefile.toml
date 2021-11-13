@@ -1,0 +1,44 @@
+[tasks.format]
+args = ["fmt", "--", "--emit=files"]
+command = "cargo"
+install_crate = "rustfmt"
+
+[tasks.clean]
+args = ["clean"]
+command = "cargo"
+
+[tasks.test]
+args = ["test"]
+command = "cargo"
+dependencies = ["clean"]
+
+[tasks.build]
+args = ["build", "${@}"]
+command = "cargo"
+
+[tasks.wasm]
+args = ["build", "--target", "wasm32-unknown-unknown", "${@}"]
+command = "cargo"
+
+[tasks.wasm-dist]
+dependencies = ["wasm"]
+script = '''
+rm -rf ./dist
+mkdir ./dist
+cp -R ./wasm/* ./dist/
+cp ./target/wasm32-unknown-unknown/debug/mtb.wasm ./dist/
+'''
+script_runner = "@shell"
+
+[tasks.wasm-run]
+args = ["./dist"]
+command = "basic-http-server"
+dependencies = ["wasm-dist"]
+
+[tasks.watch]
+command = "cargo"
+args = ["watch", "-i", "dist/", "-x", "run"]
+
+[tasks.watch-wasm]
+command = "cargo"
+args = ["watch", "-i", "dist/", "-x", "make wasm-run"]
