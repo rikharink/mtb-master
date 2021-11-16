@@ -9,6 +9,7 @@ extern crate lazy_static;
 use background::*;
 use constants::*;
 use macroquad::prelude::*;
+
 use player::*;
 
 fn render_menu() -> bool {
@@ -36,7 +37,7 @@ fn render_menu() -> bool {
 fn background_layers(amount: usize) -> Vec<Background> {
     let mut layers: Vec<Background> = Vec::new();
     for _ in 0..amount {
-        layers.push(Background::new());
+        layers.push(Background::new(BackgroundType::Mountains));
     }
     layers
 }
@@ -46,8 +47,7 @@ async fn main() {
     let mut player = Player::new(32., 32.);
     let mut accumulator: f32 = 0.;
     let mut is_running: bool = false;
-    let background_layers = background_layers(1);
-
+    let mut background_layers = background_layers(1);
     loop {
         clear_background(PALETTE[0]);
         if !is_running {
@@ -65,7 +65,7 @@ async fn main() {
         }
 
         player.tick();
-        for layer in &background_layers {
+        for layer in &mut background_layers {
             layer.tick();
         }
 
@@ -75,7 +75,7 @@ async fn main() {
             accumulator -= TIMESTEP;
         }
 
-        for layer in &background_layers {
+        for layer in &mut background_layers {
             layer.render();
         }
 

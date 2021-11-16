@@ -1,9 +1,11 @@
 use macroquad::prelude::{Color, Vec2};
+use noise::Fbm;
 
 pub const TPS: f32 = 60.;
 pub const TIMESTEP: f32 = 1. / TPS;
 
 lazy_static! {
+    pub static ref FBM: Fbm = Fbm::new();
     pub static ref UP: Vec2 = Vec2::new(0., 1.);
     pub static ref DOWN: Vec2 = Vec2::new(0., -1.);
     pub static ref LEFT :Vec2 = Vec2::new(-1., 0.);
