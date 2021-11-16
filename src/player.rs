@@ -87,6 +87,6 @@ impl Player {
     fn jump(&mut self) {
         self.position.y = self.ground_height + 0.1;
         self.is_jumping = true;
-        self.velocity += *UP * 150.;
+        self.velocity += *UP * *JUMP_FORCE;
     }
 }

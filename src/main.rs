@@ -1,14 +1,15 @@
 #![allow(dead_code)]
 
+mod background;
 mod constants;
 mod player;
 
 #[macro_use]
 extern crate lazy_static;
+use background::*;
 use constants::*;
+use macroquad::prelude::*;
 use player::*;
-use macroquad::{prelude::*};
-
 
 fn render_menu() -> bool {
     let half_width = screen_width() * 0.5;
@@ -28,8 +29,16 @@ fn render_menu() -> bool {
     let press_to_start_measure = measure_text(press_to_start, None, 64, 1.);
     x = half_width - press_to_start_measure.width * 0.5;
     draw_text(press_to_start, x, y, 64., PALETTE[15]);
-    
+
     is_mouse_button_pressed(MouseButton::Left)
+}
+
+fn background_layers(amount: usize) -> Vec<Background> {
+    let mut layers: Vec<Background> = Vec::new();
+    for _ in 0..amount {
+        layers.push(Background::new());
+    }
+    layers
 }
 
 #[macroquad::main("MTB")]
@@ -37,6 +46,7 @@ async fn main() {
     let mut player = Player::new(32., 32.);
     let mut accumulator: f32 = 0.;
     let mut is_running: bool = false;
+    let background_layers = background_layers(1);
 
     loop {
         clear_background(PALETTE[0]);
@@ -55,10 +65,18 @@ async fn main() {
         }
 
         player.tick();
+        for layer in &background_layers {
+            layer.tick();
+        }
+
         accumulator += delta_time;
         while accumulator >= TIMESTEP {
             player.step();
             accumulator -= TIMESTEP;
+        }
+
+        for layer in &background_layers {
+            layer.render();
         }
 
         player.render();

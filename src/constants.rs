@@ -9,8 +9,9 @@ lazy_static! {
     pub static ref LEFT :Vec2 = Vec2::new(-1., 0.);
     pub static ref RIGHT :Vec2 = Vec2::new(1., 0.);
 
+    pub static ref JUMP_FORCE: f32 = 150.;
     pub static ref GRAVITY: f32 = 9.8;
-    
+
     pub static ref PALETTE: [Color; 16] = [
         Color::from_rgba(29, 24, 25, 255),
         Color::from_rgba(72, 38, 50, 255),
