@@ -1,16 +1,17 @@
 #![allow(dead_code)]
 
-mod background;
 mod constants;
 mod player;
+mod util;
+mod shaders;
 
 #[macro_use]
 extern crate lazy_static;
-use background::*;
 use constants::*;
 use macroquad::prelude::*;
 
 use player::*;
+use util::rgba_texture;
 
 fn render_menu() -> bool {
     let half_width = screen_width() * 0.5;
@@ -34,20 +35,12 @@ fn render_menu() -> bool {
     is_mouse_button_pressed(MouseButton::Left)
 }
 
-fn background_layers(amount: usize) -> Vec<Background> {
-    let mut layers: Vec<Background> = Vec::new();
-    for _ in 0..amount {
-        layers.push(Background::new(BackgroundType::Mountains));
-    }
-    layers
-}
-
 #[macroquad::main("MTB")]
 async fn main() {
     let mut player = Player::new(32., 32.);
     let mut accumulator: f32 = 0.;
     let mut is_running: bool = false;
-    let mut background_layers = background_layers(1);
+    let texture = rgba_texture(256, 256);
     loop {
         clear_background(PALETTE[0]);
         if !is_running {
@@ -65,9 +58,6 @@ async fn main() {
         }
 
         player.tick();
-        for layer in &mut background_layers {
-            layer.tick();
-        }
 
         accumulator += delta_time;
         while accumulator >= TIMESTEP {
@@ -75,11 +65,10 @@ async fn main() {
             accumulator -= TIMESTEP;
         }
 
-        for layer in &mut background_layers {
-            layer.render();
-        }
-
         player.render();
+        draw_texture(texture, 250., 250., WHITE);
         next_frame().await
     }
 }
+
+
