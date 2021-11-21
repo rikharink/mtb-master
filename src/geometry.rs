@@ -37,3 +37,11 @@ impl Rectangle {
         overlap_x && overlap_y
     }
 }
+
+type Radian = f32;
+#[derive(Debug)]
+pub struct OrientedRectangle {
+    position: Vec2,
+    half_extends: Vec2,
+    rotation: Radian,
+}

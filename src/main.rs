@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 #![feature(drain_filter)]
 mod background;
-mod geometry;
 mod constants;
+mod geometry;
 mod obstacles;
 mod player;
 mod shaders;
@@ -27,7 +27,7 @@ async fn main() {
 
         if delta_time > 1. {
             // skip updating and make sure the pause menu is shown
-            state.paused = true;
+            state.state = GameState::Paused;
             next_frame().await;
             continue;
         }

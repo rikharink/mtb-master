@@ -25,7 +25,7 @@ impl Player {
             acceleration: Vec2::ZERO,
             position: Vec2::ZERO,
             is_jumping: false,
-            can_jump: true,
+            can_jump: false,
         }
     }
 
@@ -36,7 +36,7 @@ impl Player {
         self.acceleration = Vec2::ZERO;
         self.position = Vec2::ZERO;
         self.is_jumping = false;
-        self.can_jump = true;
+        self.can_jump = false;
     }
 
     pub fn render(&self) {
@@ -44,7 +44,7 @@ impl Player {
         draw_rectangle(origin.x, origin.y, self.size.x, self.size.y, PALETTE[8]);
     }
 
-    pub fn step(&mut self) {
+    pub fn step(&mut self, time: f32) {
         if self.position.y <= self.ground_height {
             self.position.y = self.ground_height;
             self.acceleration += *UP * *GRAVITY;
@@ -52,11 +52,14 @@ impl Player {
             if self.is_jumping {
                 self.acceleration = *UP * *GRAVITY;
                 self.velocity = Vec2::ZERO;
-                self.can_jump = true;
                 self.is_jumping = false;
             }
+            self.can_jump = true;
         }
 
+        if time <= 0.5 {
+            self.can_jump = false;
+        }
         self.acceleration += *DOWN * *GRAVITY;
         self.velocity += self.acceleration * TIMESTEP;
         self.position += self.velocity * TIMESTEP;
