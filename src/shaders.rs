@@ -1,7 +1,17 @@
-pub const BACKGROUND_FRAGMENT_SHADER: &'static str = r#"
+pub const BACKGROUND_FRAGMENT_SHADER: &'static str = r#"#version 100
+precision mediump float;
+
+uniform float iTime;
+uniform vec2 iResolution;
+uniform sampler2D iChannel0;
+uniform vec3 iMountain1;
+uniform vec3 iMountain2;
+uniform vec3 iGradientStart;
+uniform vec3 iGradientEnd;
+
 float grad(float p) {
 	const float texture_width = 256.0;
-	float v = texture(iChannel0, vec2(p / texture_width, p)).r;
+	float v = texture2D(iChannel0, vec2(p / texture_width, p)).r;
     return v > 0.5 ? 1.0 : -1.0;
 }
 
@@ -52,33 +62,25 @@ float mountain3(float x) {
         noise(position * (1.0/37.5))  * 0.125;
 }
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    float n1 = mountain1(fragCoord.x);
-    float n2 = mountain2(fragCoord.x);
-    float n3 = mountain3(fragCoord.x);
-    float ypos = fragCoord.y/iResolution.y;
-    float y = 2.0 * (ypos) - 1.0; /* map fragCoord.y into [-1; 1] range */
-    vec3 color = mix(mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), ypos/1.1), vec3(0.0, 0.1, 0.2), ypos / 1.2);
-    if(n2 > y) color = vec3(0.2, 0.2, 0.);
-    if(n1 >  y) color = vec3(0.);
-
-	fragColor = vec4(color, 1.0);
-}
-
 void main(){
+    float n1 = mountain1(gl_FragCoord.x);
+    float n2 = mountain2(gl_FragCoord.x);
+    float ypos = gl_FragCoord .y/iResolution.y;
+    float y = 2.0 * (ypos) - 1.0; /* map gl_FragCoord .y into [-1; 1] range */
+    vec3 color = mix(iGradientEnd, iGradientStart, ypos / 1.2);
+    if(n2 > y) color = iMountain2;
+    if(n1 >  y) color = iMountain1;
 
+	gl_FragColor = vec4(color, 1.0);
 }
 "#;
 
 pub const BACKGROUND_VERTEX_SHADER: &'static str = r#"#version 100
 attribute vec3 position;
 attribute vec2 texcoord;
-varying lowp vec2 uv;
 uniform mat4 Model;
 uniform mat4 Projection;
 void main() {
     gl_Position = Projection * Model * vec4(position, 1);
-    uv = texcoord;
 }
 "#;

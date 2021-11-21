@@ -1,11 +1,10 @@
-use crate::constants::*;
+use crate::{constants::*, geometry::Rectangle};
 use macroquad::prelude::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Player {
     pub center: Vec2,
     pub size: Vec2,
-    pub distance: f32,
     pub speed: f32,
     pub ground_height: f32,
     pub velocity: Vec2,
@@ -20,7 +19,6 @@ impl Player {
         Self {
             center: Vec2::new(screen_width() * 0.5 - width * 0.5, screen_height() - height),
             size: Vec2::new(width, height),
-            distance: 0.,
             speed: 0.14,
             ground_height: 0.,
             velocity: Vec2::ZERO,
@@ -31,22 +29,19 @@ impl Player {
         }
     }
 
-    pub fn render(&self) {
-        draw_rectangle(
-            self.center.x,
-            self.center.y - self.ground_height - self.position.y,
-            32.,
-            32.,
-            PALETTE[8],
-        );
+    pub fn reset(&mut self) {
+        self.speed = 0.14;
+        self.ground_height = 0.;
+        self.velocity = Vec2::ZERO;
+        self.acceleration = Vec2::ZERO;
+        self.position = Vec2::ZERO;
+        self.is_jumping = false;
+        self.can_jump = true;
+    }
 
-        draw_text(
-            &format!("{}m", self.distance.round() as i32),
-            32.,
-            64.,
-            64.,
-            PALETTE[15],
-        );
+    pub fn render(&self) {
+        let origin = self.origin();
+        draw_rectangle(origin.x, origin.y, self.size.x, self.size.y, PALETTE[8]);
     }
 
     pub fn step(&mut self) {
@@ -63,7 +58,6 @@ impl Player {
         }
 
         self.acceleration += *DOWN * *GRAVITY;
-        self.distance += self.speed;
         self.velocity += self.acceleration * TIMESTEP;
         self.position += self.velocity * TIMESTEP;
     }
@@ -88,5 +82,16 @@ impl Player {
         self.position.y = self.ground_height + 0.1;
         self.is_jumping = true;
         self.velocity += *UP * *JUMP_FORCE;
+    }
+
+    pub fn get_aabb(&self) -> Rectangle {
+        Rectangle::new(self.origin(), self.size)
+    }
+
+    fn origin(&self) -> Vec2 {
+        Vec2::new(
+            self.center.x,
+            self.center.y - self.ground_height - self.position.y,
+        )
     }
 }

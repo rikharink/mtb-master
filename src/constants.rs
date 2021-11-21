@@ -3,17 +3,15 @@ use macroquad::prelude::{Color, Vec2};
 pub const TPS: f32 = 60.;
 pub const TIMESTEP: f32 = 1. / TPS;
 
-
+pub const PLAYER_SPEED_TO_OBSTACLE_SPEED: f32 = 34.;
 
 lazy_static! {
     pub static ref UP: Vec2 = Vec2::new(0., 1.);
     pub static ref DOWN: Vec2 = Vec2::new(0., -1.);
-    pub static ref LEFT :Vec2 = Vec2::new(-1., 0.);
-    pub static ref RIGHT :Vec2 = Vec2::new(1., 0.);
-
+    pub static ref LEFT: Vec2 = Vec2::new(-1., 0.);
+    pub static ref RIGHT: Vec2 = Vec2::new(1., 0.);
     pub static ref JUMP_FORCE: f32 = 150.;
     pub static ref GRAVITY: f32 = 9.8;
-
     pub static ref PALETTE: [Color; 16] = [
         Color::from_rgba(29, 24, 25, 255),
         Color::from_rgba(72, 38, 50, 255),
