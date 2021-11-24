@@ -18,13 +18,13 @@ impl Rectangle {
     pub fn min(&self) -> Vec2 {
         let p1 = self.origin;
         let p2 = self.origin + self.size;
-        Vec2::new(p1.x.min(p2.x), p1.y.min(p2.y))
+        vec2(p1.x.min(p2.x), p1.y.min(p2.y))
     }
 
     pub fn max(&self) -> Vec2 {
         let p1 = self.origin;
         let p2 = self.origin + self.size;
-        Vec2::new(p1.x.max(p2.x), p1.y.max(p2.y))
+        vec2(p1.x.max(p2.x), p1.y.max(p2.y))
     }
 
     pub fn collides_with(&self, other: &Rectangle) -> bool {

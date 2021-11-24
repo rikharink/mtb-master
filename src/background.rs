@@ -39,46 +39,19 @@ pub struct Background {
 impl Default for Background {
     fn default() -> Self {
         let rgba_texture = rgba_texture(256, 256);
-        let background_fragment_shader = BACKGROUND_FRAGMENT_SHADER.to_string();
-        let background_vertex_shader = BACKGROUND_VERTEX_SHADER.to_string();
-
-        let pipeline_params = PipelineParams {
-            depth_write: true,
-            depth_test: Comparison::LessOrEqual,
-            ..Default::default()
-        };
-
-        let material = load_material(
-            &background_vertex_shader,
-            &background_fragment_shader,
-            MaterialParams {
-                pipeline_params,
-                uniforms: vec![
-                    ("iTime".to_string(), UniformType::Float1),
-                    ("iResolution".to_string(), UniformType::Float2),
-                    ("iMountain1".to_string(), UniformType::Float3),
-                    ("iMountain2".to_string(), UniformType::Float3),
-                    ("iGradientStart".to_string(), UniformType::Float3),
-                    ("iGradientEnd".to_string(), UniformType::Float3),
-                ],
-                textures: vec!["iChannel0".to_string()],
-            },
-        )
-        .unwrap();
-
         Self {
             sky: Sky::default(),
-            material,
+            material: get_background_material(),
             rgba_texture,
         }
     }
 }
 
 impl Background {
-    pub fn render(&self, time: f32) {
+    pub fn render(&self, time: f32, resolution: Vec2) {
         self.material.set_uniform("iTime", time);
         self.material
-            .set_uniform("iResolution", Vec2::new(screen_width(), screen_height()));
+            .set_uniform("iResolution", vec2(resolution.x, resolution.y));
         let mountain1 = PALETTE[3];
         let mountain2 = PALETTE[6];
 
@@ -101,7 +74,7 @@ impl Background {
 
         self.material.set_texture("iChannel0", self.rgba_texture);
         gl_use_material(self.material);
-        draw_rectangle(0., 0., screen_width(), screen_height(), WHITE);
+        draw_rectangle(0., 0., resolution.x, resolution.y, WHITE);
         gl_use_default_material();
     }
 }

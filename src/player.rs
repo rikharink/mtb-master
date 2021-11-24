@@ -17,8 +17,8 @@ pub struct Player {
 impl Player {
     pub fn new(width: f32, height: f32) -> Self {
         Self {
-            center: Vec2::new(screen_width() * 0.5 - width * 0.5, screen_height() - height),
-            size: Vec2::new(width, height),
+            center: vec2(screen_width() * 0.5 - width * 0.5, screen_height() - height),
+            size: vec2(width, height),
             speed: 0.14,
             ground_height: 0.,
             velocity: Vec2::ZERO,
@@ -66,7 +66,7 @@ impl Player {
     }
 
     pub fn tick(&mut self) {
-        self.center = Vec2::new(
+        self.center = vec2(
             screen_width() * 0.5 - self.size.x * 0.5,
             screen_height() - self.size.y,
         );
@@ -92,7 +92,7 @@ impl Player {
     }
 
     fn origin(&self) -> Vec2 {
-        Vec2::new(
+        vec2(
             self.center.x,
             self.center.y - self.ground_height - self.position.y,
         )

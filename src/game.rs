@@ -1,4 +1,7 @@
-use crate::{background::Background, constants::*, obstacles::ObstaclePool, player::Player};
+use crate::{
+    background::Background, constants::*, obstacles::ObstaclePool, player::Player,
+    shaders::get_post_processing_material,
+};
 use macroquad::prelude::*;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -9,7 +12,7 @@ pub enum GameState {
 }
 
 #[derive(Debug, Clone)]
-pub struct State {
+pub struct Game {
     pub distance: f32,
     pub time: f64,
     pub delta_time: f32,
@@ -19,9 +22,11 @@ pub struct State {
     pub spawn_time: f64,
     pub state: GameState,
     pub round_time: f32,
+    pub size: Vec2,
+    pub post_processing_material: Material,
 }
 
-impl State {
+impl Game {
     pub fn tick(&mut self) {
         if !self.is_game_over() {
             self.time = get_time();
@@ -30,8 +35,18 @@ impl State {
 
         if self.is_running() {
             self.player.tick();
+            self.obstacles.tick();
             self.round_time += self.delta_time;
         }
+
+        let size = vec2(screen_width(), screen_height());
+        if self.size != size {
+            self.size = size;
+        }
+    }
+
+    pub fn half_size(&self) -> Vec2 {
+        return self.size * 0.5;
     }
 
     fn is_running(&self) -> bool {
@@ -61,20 +76,49 @@ impl State {
         }
     }
 
+    fn render_post_processing(&self, texture: Texture2D) {
+        set_default_camera();
+        self.post_processing_material
+            .set_uniform("iTime", self.time as f32);
+        self.post_processing_material
+            .set_uniform("iResolution", vec2(self.size.x as f32, self.size.y as f32));
+
+        gl_use_material(self.post_processing_material);
+        draw_texture_ex(
+            texture,
+            0.0,
+            0.0,
+            WHITE,
+            DrawTextureParams {
+                flip_y: true,
+                ..Default::default()
+            },
+        );
+        gl_use_default_material();
+    }
+
     pub fn render(&mut self, _alpha: f32) {
+        let rect = Rect::new(0., 0., self.size.x, self.size.y);
+        let mut camera = Camera2D::from_display_rect(rect);
+        let game_render_target = render_target(self.size.x as u32, self.size.y as u32);
+        game_render_target.texture.set_filter(FilterMode::Linear);
+        camera.render_target = Some(game_render_target);
+        set_camera(&camera);
+
         if self.is_paused() {
-            self.background.render(self.time as f32);
+            self.background.render(self.time as f32, self.size);
             self.player.render();
             self.state = if self.render_menu() {
                 GameState::Paused
             } else {
                 GameState::Running
             };
+            self.render_post_processing(game_render_target.texture);
             return;
         }
 
         if self.is_game_over() {
-            self.background.render(self.time as f32);
+            self.background.render(self.time as f32, self.size);
             self.player.render();
             self.obstacles.render();
             let restart = self.render_game_over();
@@ -82,12 +126,14 @@ impl State {
                 self.reset();
                 self.state = GameState::Running;
             }
+            self.render_post_processing(game_render_target.texture);
             return;
         }
 
-        self.background.render(self.time as f32);
+        self.background.render(self.time as f32, self.size);
         self.player.render();
         self.obstacles.render();
+        self.render_post_processing(game_render_target.texture);
         self.render_info();
     }
 
@@ -186,8 +232,9 @@ impl State {
     }
 }
 
-impl Default for State {
+impl Default for Game {
     fn default() -> Self {
+        let size = vec2(screen_width(), screen_height());
         Self {
             time: 0.,
             delta_time: 0.,
@@ -198,6 +245,8 @@ impl Default for State {
             distance: 0.,
             spawn_time: 2.,
             state: GameState::Paused,
+            size,
+            post_processing_material: get_post_processing_material(),
         }
     }
 }

@@ -1,4 +1,6 @@
-pub const BACKGROUND_FRAGMENT_SHADER: &'static str = r#"#version 100
+use macroquad::prelude::*;
+
+const BACKGROUND_FRAGMENT_SHADER: &'static str = r#"#version 100
 precision mediump float;
 
 uniform float iTime;
@@ -75,12 +77,98 @@ void main(){
 }
 "#;
 
-pub const BACKGROUND_VERTEX_SHADER: &'static str = r#"#version 100
+const DEFAULT_VERTEX_SHADER: &'static str = r#"#version 100
+precision mediump float;
+
 attribute vec3 position;
 attribute vec2 texcoord;
+
+varying vec2 uv;
+
 uniform mat4 Model;
 uniform mat4 Projection;
+
 void main() {
     gl_Position = Projection * Model * vec4(position, 1);
+    uv = texcoord;
 }
 "#;
+
+pub fn get_background_material() -> Material {
+    let background_fragment_shader = BACKGROUND_FRAGMENT_SHADER.to_string();
+    let background_vertex_shader = DEFAULT_VERTEX_SHADER.to_string();
+
+    let pipeline_params = PipelineParams {
+        ..Default::default()
+    };
+
+    load_material(
+        &background_vertex_shader,
+        &background_fragment_shader,
+        MaterialParams {
+            pipeline_params,
+            uniforms: vec![
+                ("iTime".to_string(), UniformType::Float1),
+                ("iResolution".to_string(), UniformType::Float2),
+                ("iMountain1".to_string(), UniformType::Float3),
+                ("iMountain2".to_string(), UniformType::Float3),
+                ("iGradientStart".to_string(), UniformType::Float3),
+                ("iGradientEnd".to_string(), UniformType::Float3),
+            ],
+            textures: vec!["iChannel0".to_string()],
+        },
+    )
+    .unwrap()
+}
+
+const POST_PROCESSSING_FRAGMENT_SHADER: &'static str = r#"#version 100
+precision mediump float;
+
+varying vec2 uv;
+
+uniform float iTime;
+uniform vec2 iResolution;
+uniform float radius;
+uniform float smoothness;
+uniform sampler2D Texture;
+
+float vignette(vec2 uv, float radius, float smoothness) {
+	float diff = radius - distance(uv, vec2(0.5, 0.5));
+	return smoothstep(-smoothness, smoothness, diff);
+}
+
+void main() {
+    float vignetteValue = vignette(uv, 0.5, 0.5);
+    vec4 color = texture2D(Texture, uv);
+    color *= vignetteValue;
+    gl_FragColor = color;
+}
+"#;
+
+pub fn get_post_processing_material() -> Material {
+    let fragment_shader = POST_PROCESSSING_FRAGMENT_SHADER.to_string();
+    let vertex_shader = DEFAULT_VERTEX_SHADER.to_string();
+
+    let pipeline_params = PipelineParams {
+        ..Default::default()
+    };
+
+    let material = load_material(
+        &vertex_shader,
+        &fragment_shader,
+        MaterialParams {
+            pipeline_params,
+            uniforms: vec![
+                ("iTime".to_string(), UniformType::Float1),
+                ("iResolution".to_string(), UniformType::Float2),
+                ("radius".to_string(), UniformType::Float1),
+                ("smoothness".to_string(), UniformType::Float1),
+            ],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    material.set_uniform("radius", 0.95f32);
+    material.set_uniform("smoothness", 0.9f32);
+    material
+}

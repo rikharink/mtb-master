@@ -13,8 +13,12 @@ impl Obstacle {
         Self {
             size,
             color,
-            position: Vec2::new(screen_width() + size.x, screen_height() - size.y),
+            position: vec2(screen_width() + size.x, screen_height() - size.y),
         }
+    }
+
+    pub fn tick(&mut self){
+        
     }
 
     pub fn step(&mut self, player_speed: f32) {
@@ -50,11 +54,17 @@ impl ObstaclePool {
 
     pub fn spawn(&mut self) {
         self.obstacles
-            .push(Obstacle::new(Vec2::new(64., 32.), PALETTE[5]));
+            .push(Obstacle::new(vec2(64., 32.), PALETTE[5]));
     }
 
     pub fn reset(&mut self) {
         self.obstacles.clear();
+    }
+    
+    pub fn tick(&mut self){
+        for obstacle in &mut self.obstacles {
+            obstacle.tick();
+        }
     }
 
     pub fn step(&mut self, player_speed: f32) {
