@@ -17,9 +17,7 @@ impl Obstacle {
         }
     }
 
-    pub fn tick(&mut self){
-        
-    }
+    pub fn tick(&mut self) {}
 
     pub fn step(&mut self, player_speed: f32) {
         self.position.x -= player_speed * PLAYER_SPEED_TO_OBSTACLE_SPEED;
@@ -60,8 +58,8 @@ impl ObstaclePool {
     pub fn reset(&mut self) {
         self.obstacles.clear();
     }
-    
-    pub fn tick(&mut self){
+
+    pub fn tick(&mut self) {
         for obstacle in &mut self.obstacles {
             obstacle.tick();
         }

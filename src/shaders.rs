@@ -15,6 +15,8 @@ uniform vec3 color_mountain_1;
 uniform vec3 color_mountain_2;
 uniform vec3 sky_gradient_start;
 uniform vec3 sky_gradient_end;
+uniform float world_time;
+uniform int is_night;
 
 float grad(float p) {
 	const float texture_width = 256.0;
@@ -59,15 +61,6 @@ float mountain1(float x) {
         noise(position * (1.0/37.5))  * 0.125;
 }
 
-float mountain3(float x) {
-	float position = iTime * 124.3 + x;
-    return 
-        noise(position * (1.0/300.0)) * 1.0 +
-        noise(position * (1.0/150.0)) * 0.5 +
-        noise(position * (1.0/75.0))  * 0.25 +
-        noise(position * (1.0/37.5))  * 0.125;
-}
-
 vec3 rgb(float r, float g, float b) {
 	return vec3(r / 255.0, g / 255.0, b / 255.0);
 }
@@ -84,6 +77,9 @@ void main(){
     float ypos = gl_FragCoord.y / iResolution.y;
     float y = 2.0 * (ypos) - 1.0;
     vec3 color = mix(sky_gradient_end, sky_gradient_start, ypos / 1.2);
+    if(is_night == 1) {
+        
+    }
     vec4 sun = circle(position_sun, radius_sun, color_sun);
     color = mix(color, sun.rgb, sun.a);
     if(n2 > y) color = color_mountain_2;
@@ -129,6 +125,11 @@ pub fn get_background_material() -> Material {
                 ("color_mountain_2".to_string(), UniformType::Float3),
                 ("sky_gradient_start".to_string(), UniformType::Float3),
                 ("sky_gradient_end".to_string(), UniformType::Float3),
+                ("color_sun".to_string(), UniformType::Float3),
+                ("position_sun".to_string(), UniformType::Float2),
+                ("radius_sun".to_string(), UniformType::Float1),
+                ("world_time".to_string(), UniformType::Float1),
+                ("is_night".to_string(), UniformType::Int1),
             ],
             textures: vec!["rgba_noise_texture".to_string()],
         },

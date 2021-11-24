@@ -2,11 +2,11 @@
 #![feature(drain_filter)]
 mod background;
 mod constants;
+mod game;
 mod geometry;
 mod obstacles;
 mod player;
 mod shaders;
-mod game;
 mod util;
 
 #[macro_use]

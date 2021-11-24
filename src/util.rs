@@ -10,3 +10,13 @@ pub fn rgba_texture(width: u16, height: u16) -> Texture2D {
     texture.set_filter(FilterMode::Nearest);
     texture
 }
+
+pub fn color_to_vector(color: Color) -> Vec3 {
+    vec3(color.r, color.g, color.b)
+}
+
+pub fn point_on_circle(origin: Vec2, radius: f32, theta: f32) -> Vec2 {
+    let x = origin.x + radius * theta.cos();
+    let y = origin.y + radius * theta.sin();
+    vec2(x, y)
+}
