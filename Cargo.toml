@@ -12,3 +12,7 @@ lazy_static = "1.4.0"
 macroquad = "0.3.10"
 nanoserde = "0.1.29"
 lerp = { version = "0.4", features = ["derive"] }
+
+[target.x86_64-unknown-linux-gnu]
+linker = "/usr/bin/clang"
+rustflags = ["-Clink-arg=-fuse-ld=lld", "-Clink-arg=-Wl,--no-rosegment"]

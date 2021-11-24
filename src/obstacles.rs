@@ -9,11 +9,11 @@ struct Obstacle {
 }
 
 impl Obstacle {
-    pub fn new(size: Vec2, color: Color) -> Self {
+    pub fn new(size: Vec2, color: Color, resolution: Vec2) -> Self {
         Self {
             size,
             color,
-            position: vec2(screen_width() + size.x, screen_height() - size.y),
+            position: vec2(resolution.x + size.x, resolution.y - size.y),
         }
     }
 
@@ -52,9 +52,9 @@ impl ObstaclePool {
         }
     }
 
-    pub fn spawn(&mut self) {
+    pub fn spawn(&mut self, resolution: Vec2) {
         self.obstacles
-            .push(Obstacle::new(vec2(64., 32.), PALETTE[5]));
+            .push(Obstacle::new(vec2(64., 32.), PALETTE[5], resolution));
     }
 
     pub fn reset(&mut self) {

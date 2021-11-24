@@ -56,23 +56,23 @@ impl Background {
         let mountain2 = PALETTE[6];
 
         self.material.set_uniform(
-            "iGradientStart",
+            "sky_gradient_start",
             Vec3::new(self.sky.start.r, self.sky.start.g, self.sky.start.b),
         );
         self.material.set_uniform(
-            "iGradientEnd",
+            "sky_gradient_end",
             Vec3::new(self.sky.end.r, self.sky.end.g, self.sky.end.b),
         );
         self.material.set_uniform(
-            "iMountain1",
+            "color_mountain_1",
             Vec3::new(mountain1.r, mountain1.g, mountain1.b),
         );
         self.material.set_uniform(
-            "iMountain2",
+            "color_mountain_2",
             Vec3::new(mountain2.r, mountain2.g, mountain2.b),
         );
 
-        self.material.set_texture("iChannel0", self.rgba_texture);
+        self.material.set_texture("rgba_noise_texture", self.rgba_texture);
         gl_use_material(self.material);
         draw_rectangle(0., 0., resolution.x, resolution.y, WHITE);
         gl_use_default_material();

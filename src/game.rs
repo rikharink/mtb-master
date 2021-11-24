@@ -4,14 +4,14 @@ use crate::{
 };
 use macroquad::prelude::*;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub enum GameState {
     Running,
     Paused,
     GameOver,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Game {
     pub distance: f32,
     pub time: f64,
@@ -22,8 +22,10 @@ pub struct Game {
     pub spawn_time: f64,
     pub state: GameState,
     pub round_time: f32,
-    pub size: Vec2,
+    pub resolution: Vec2,
     pub post_processing_material: Material,
+    pub game_render_target: RenderTarget,
+    pub camera: Camera2D,
 }
 
 impl Game {
@@ -38,15 +40,10 @@ impl Game {
             self.obstacles.tick();
             self.round_time += self.delta_time;
         }
-
-        let size = vec2(screen_width(), screen_height());
-        if self.size != size {
-            self.size = size;
-        }
     }
 
     pub fn half_size(&self) -> Vec2 {
-        return self.size * 0.5;
+        return self.resolution * 0.5;
     }
 
     fn is_running(&self) -> bool {
@@ -77,19 +74,42 @@ impl Game {
     }
 
     fn render_post_processing(&self, texture: Texture2D) {
-        set_default_camera();
         self.post_processing_material
             .set_uniform("iTime", self.time as f32);
         self.post_processing_material
-            .set_uniform("iResolution", vec2(self.size.x as f32, self.size.y as f32));
+            .set_uniform("iResolution", vec2(self.resolution.x as f32, self.resolution.y as f32));
 
         gl_use_material(self.post_processing_material);
+        
+        let sw = screen_width();
+        let sh = screen_height();
+
+        let aspect: f32;
+        let width: f32;
+        let height: f32;
+        let x: f32;
+        let y: f32;
+        if sh >= sw {
+            aspect = self.resolution.y / self.resolution.x;
+            width = sw;
+            height = width * aspect;
+            x = 0.0;
+            y = (sh - height) * 0.5;
+        } else {
+            aspect = self.resolution.x / self.resolution.y;
+            height = sh;
+            width = height * aspect;
+            y = 0.0;
+            x = (sw - width) * 0.5;
+        }
+
         draw_texture_ex(
             texture,
-            0.0,
-            0.0,
+            x,
+            y,
             WHITE,
             DrawTextureParams {
+                dest_size: Some(vec2(width, height)),
                 flip_y: true,
                 ..Default::default()
             },
@@ -98,42 +118,29 @@ impl Game {
     }
 
     pub fn render(&mut self, _alpha: f32) {
-        let rect = Rect::new(0., 0., self.size.x, self.size.y);
-        let mut camera = Camera2D::from_display_rect(rect);
-        let game_render_target = render_target(self.size.x as u32, self.size.y as u32);
-        game_render_target.texture.set_filter(FilterMode::Linear);
-        camera.render_target = Some(game_render_target);
-        set_camera(&camera);
+        set_camera(&self.camera);
+        self.background.render(self.time as f32, self.resolution);
+        self.player.render();
+        
+        if self.is_paused() || self.is_running() {
+            self.obstacles.render();
+        }
+        set_default_camera();
 
+        self.render_post_processing(self.game_render_target.texture);
         if self.is_paused() {
-            self.background.render(self.time as f32, self.size);
-            self.player.render();
             self.state = if self.render_menu() {
                 GameState::Paused
             } else {
                 GameState::Running
             };
-            self.render_post_processing(game_render_target.texture);
-            return;
-        }
-
-        if self.is_game_over() {
-            self.background.render(self.time as f32, self.size);
-            self.player.render();
-            self.obstacles.render();
+        } else if self.is_game_over() {
             let restart = self.render_game_over();
             if restart {
                 self.reset();
                 self.state = GameState::Running;
             }
-            self.render_post_processing(game_render_target.texture);
-            return;
         }
-
-        self.background.render(self.time as f32, self.size);
-        self.player.render();
-        self.obstacles.render();
-        self.render_post_processing(game_render_target.texture);
         self.render_info();
     }
 
@@ -219,7 +226,7 @@ impl Game {
 
     fn spawn_attempt(&mut self) {
         if self.round_time % self.spawn_time as f32 <= TIMESTEP {
-            self.obstacles.spawn();
+            self.obstacles.spawn(self.resolution);
         }
     }
 
@@ -234,19 +241,27 @@ impl Game {
 
 impl Default for Game {
     fn default() -> Self {
-        let size = vec2(screen_width(), screen_height());
+        let size = vec2(1920., 1080.);
+        let rect = Rect::new(0., 0., size.x, size.y);
+        let mut camera = Camera2D::from_display_rect(rect);
+        let game_render_target = render_target(size.x as u32, size.y as u32);
+        game_render_target.texture.set_filter(FilterMode::Linear);
+        camera.render_target = Some(game_render_target);
+
         Self {
             time: 0.,
             delta_time: 0.,
             round_time: 0.,
             background: Background::default(),
-            player: Player::new(32., 32.),
+            player: Player::new(vec2(32., 32.), size),
             obstacles: ObstaclePool::new(10),
             distance: 0.,
             spawn_time: 2.,
             state: GameState::Paused,
-            size,
+            resolution: size,
             post_processing_material: get_post_processing_material(),
+            game_render_target,
+            camera,
         }
     }
 }

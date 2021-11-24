@@ -15,10 +15,10 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(width: f32, height: f32) -> Self {
+    pub fn new(size: Vec2, resolution: Vec2) -> Self {
         Self {
-            center: vec2(screen_width() * 0.5 - width * 0.5, screen_height() - height),
-            size: vec2(width, height),
+            center: vec2(resolution.x * 0.5 - size.x * 0.5, resolution.y - size.y),
+            size,
             speed: 0.14,
             ground_height: 0.,
             velocity: Vec2::ZERO,
@@ -66,16 +66,12 @@ impl Player {
     }
 
     pub fn tick(&mut self) {
-        self.center = vec2(
-            screen_width() * 0.5 - self.size.x * 0.5,
-            screen_height() - self.size.y,
-        );
-
         if is_mouse_button_down(MouseButton::Left) && self.can_jump {
             if !self.is_jumping {
                 self.jump();
             }
         }
+        
         if is_mouse_button_released(MouseButton::Left) && self.is_jumping && self.can_jump {
             self.can_jump = false;
         }
