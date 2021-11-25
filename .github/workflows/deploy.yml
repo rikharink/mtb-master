@@ -1,4 +1,4 @@
-name: Rust
+name: MTB Master
 
 on:
   push:
@@ -16,9 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: build-wasm
+    - name: Build WASM
       run: cargo build --release --target wasm32-unknown-unknown
-    - name: setup-dist
+    - name: Setup DIST
       run: |
         rm -rf ./dist
         mkdir ./dist
@@ -29,3 +29,5 @@ jobs:
       with:
         build_dir: ./dist/
         jekyll: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
