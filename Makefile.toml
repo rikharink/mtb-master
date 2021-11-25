@@ -21,6 +21,10 @@ args = ["build", "--target", "wasm32-unknown-unknown", "${@}"]
 command = "cargo"
 
 [tasks.wasm-dist]
+run_task = "wasm-dist-production"
+
+[tasks.wasm-dist-development]
+condition = { profiles = ["development"] }
 dependencies = ["wasm"]
 script = '''
 rm -rf ./dist
@@ -30,15 +34,28 @@ cp ./target/wasm32-unknown-unknown/debug/mtb.wasm ./dist/
 '''
 script_runner = "@shell"
 
+[tasks.wasm-dist-production]
+condition = { profiles = ["production"] }
+dependencies = ["wasm"]
+script = '''
+rm -rf ./dist
+mkdir ./dist
+cp -R ./wasm/* ./dist/
+cp ./target/wasm32-unknown-unknown/release/mtb.wasm ./dist/
+'''
+script_runner = "@shell"
+
 [tasks.wasm-run]
 args = ["./dist"]
 command = "basic-http-server"
-dependencies = ["wasm-dist"]
+dependencies = ["wasm-dist-development"]
 
 [tasks.watch]
 command = "cargo"
 args = ["watch", "-i", "dist/", "-x", "run"]
+install_crate = "cargo-watch"
 
 [tasks.watch-wasm]
 command = "cargo"
 args = ["watch", "-i", "dist/", "-x", "make wasm-run"]
+install_crate = "cargo-watch"
