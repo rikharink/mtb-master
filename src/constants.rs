@@ -1,3 +1,4 @@
+use include_path::include_path_str;
 use macroquad::prelude::*;
 
 pub const RESOLUTION_X: f32 = 1920.;
@@ -7,6 +8,13 @@ pub const TIMESTEP: f32 = 1. / TPS;
 pub const DAY_NIGHT_CYCLE_TIME: f32 = 60.;
 pub const PLAYER_SPEED_TO_OBSTACLE_SPEED: f32 = 34.;
 pub const DEFAULT_PLAYER_SPEED: f32 = 0.14;
+
+pub const DEFAULT_VERTEX_SHADER: &str = include_path_str!("./shaders/default.vert.glsl");
+pub const BACKGROUND_FRAGMENT_SHADER: &str = include_path_str!("./shaders/background.frag.glsl");
+pub const POST_PROCESSSING_FRAGMENT_SHADER: &str = include_path_str!("./shaders/postprocessing.frag.glsl");
+
+pub const VIGNETTE_RADIUS: f32 = 0.95;
+pub const VIGNETTE_SMOOTHNESS: f32 = 0.9;
 
 lazy_static! {
     pub static ref UP: Vec2 = vec2(0., 1.);

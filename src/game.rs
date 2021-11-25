@@ -71,6 +71,7 @@ impl Game {
         self.distance += self.player.speed;
 
         if self.obstacles.has_collision(&self.player) {
+            self.player.is_moving = false;
             self.day_night_cycle_time = DAY_NIGHT_CYCLE_TIME / 5.;
             self.state = GameState::GameOver;
             return;
@@ -130,8 +131,9 @@ impl Game {
             self.world_time,
             self.resolution,
             self.day_night_cycle_time,
+            self.player.speed,
         );
-        self.player.render(self.time as f32);
+        self.player.render();
         self.obstacles.render();
         set_default_camera();
 
@@ -170,6 +172,9 @@ impl Game {
             font_size,
             PALETTE[15],
         );
+
+        let _speed = (self.player.speed * TPS * 3.6).round() as i32;
+        //TODO: display speed
     }
 
     fn render_menu(&self) -> bool {

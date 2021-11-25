@@ -122,7 +122,14 @@ impl Background {
         }
     }
 
-    pub fn render(&self, time: f32, world_time: f32, resolution: Vec2, cycle_time: f32) {
+    pub fn render(
+        &self,
+        time: f32,
+        world_time: f32,
+        resolution: Vec2,
+        cycle_time: f32,
+        player_speed: f32,
+    ) {
         self.material.set_uniform("iTime", time);
         self.material.set_uniform("world_time", world_time);
         self.material
@@ -153,7 +160,7 @@ impl Background {
             .set_uniform("position_sun", celestial_body.position);
         self.material
             .set_uniform("is_night", celestial_body.is_night as u32);
-
+        self.material.set_uniform("player_speed", 1. + player_speed);
         self.material
             .set_texture("rgba_noise_texture", self.rgba_texture);
         gl_use_material(self.material);
