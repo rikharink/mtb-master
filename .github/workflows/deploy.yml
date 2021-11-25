@@ -23,7 +23,7 @@ jobs:
         rm -rf ./dist
         mkdir ./dist
         cp -R ./wasm/* ./dist/
-        cp ./target/wasm32-unknown-unknown/release/mbt.wasm ./dist/
+        cp ./target/wasm32-unknown-unknown/release/mtb.wasm ./dist/
     - name: GitHub Pages
       uses: crazy-max/ghaction-github-pages@v2.5.0
       with:
