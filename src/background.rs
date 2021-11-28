@@ -129,7 +129,7 @@ impl Background {
         resolution: Vec2,
         cycle_time: f32,
         player_speed: f32,
-    ) {
+    ) -> bool {
         self.material.set_uniform("iTime", time);
         self.material.set_uniform("world_time", world_time);
         self.material
@@ -166,5 +166,6 @@ impl Background {
         gl_use_material(self.material);
         draw_rectangle(0., 0., resolution.x, resolution.y, WHITE);
         gl_use_default_material();
+        celestial_body.is_night
     }
 }

@@ -17,6 +17,8 @@ pub struct Player {
     pub is_moving: bool,
     previous_pedal_theta: f32,
     previous_wheel_theta: f32,
+    pub headlight: Vec2,
+    pub taillight: Vec2,
 }
 
 impl Player {
@@ -34,6 +36,8 @@ impl Player {
             can_jump: false,
             previous_pedal_theta: 0.,
             previous_wheel_theta: 0.,
+            headlight: vec2(0., 0.),
+            taillight: vec2(0., 0.),
         }
     }
 
@@ -188,6 +192,9 @@ impl Player {
 
         let lamp_front = steering_tube + vec2(line_thickness, line_thickness * 0.75);
         let lamp_back = vec2(center.x - 28., lamp_front.y - line_thickness * 0.3);
+
+        self.headlight = lamp_front;
+        self.taillight = lamp_front;
         draw_circle(
             lamp_front.x,
             lamp_front.y,

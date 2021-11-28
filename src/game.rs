@@ -78,13 +78,25 @@ impl Game {
         }
     }
 
-    fn render_post_processing(&self, texture: Texture2D) {
+    fn render_post_processing(&self, texture: Texture2D, is_night: bool) {
         self.post_processing_material
             .set_uniform("iTime", self.time as f32);
-        self.post_processing_material.set_uniform(
-            "iResolution",
-            vec2(self.resolution.x as f32, self.resolution.y as f32),
-        );
+        let resolution = vec2(self.resolution.x as f32, self.resolution.y as f32);
+        self.post_processing_material
+            .set_uniform("iResolution", resolution);
+
+        self.post_processing_material
+            .set_uniform("darkness", if is_night { 0.8 as f32 } else { 0. as f32 });
+
+        let mut h_pos = self.player.headlight / resolution;
+        h_pos.y = 1. - h_pos.y;
+        let mut t_pos = self.player.taillight / resolution;
+        t_pos.y = 1. - t_pos.y;
+        t_pos.x = 1. - t_pos.x;
+        self.post_processing_material
+            .set_uniform("headlight", h_pos);
+        self.post_processing_material
+            .set_uniform("taillight", t_pos);
 
         gl_use_material(self.post_processing_material);
 
@@ -126,7 +138,7 @@ impl Game {
 
     pub fn render(&mut self, _alpha: f32) {
         set_camera(&self.camera);
-        self.background.render(
+        let is_night = self.background.render(
             self.time as f32,
             self.world_time,
             self.resolution,
@@ -137,7 +149,7 @@ impl Game {
         self.obstacles.render();
         set_default_camera();
 
-        self.render_post_processing(self.game_render_target.texture);
+        self.render_post_processing(self.game_render_target.texture, is_night);
         if self.is_paused() {
             if self.render_menu() {
                 self.day_night_cycle_time = DAY_NIGHT_CYCLE_TIME / 5.;

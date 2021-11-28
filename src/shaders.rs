@@ -1,4 +1,4 @@
-use crate::constants::*;
+use crate::{constants::*, util::color_to_vector};
 use macroquad::prelude::*;
 
 pub fn get_background_material() -> Material {
@@ -52,11 +52,19 @@ pub fn get_post_processing_material() -> Material {
                 ("iResolution".to_string(), UniformType::Float2),
                 ("radius".to_string(), UniformType::Float1),
                 ("smoothness".to_string(), UniformType::Float1),
+                ("headlight".to_string(), UniformType::Float2),
+                ("headlight_color".to_string(), UniformType::Float3),
+                ("taillight".to_string(), UniformType::Float2),
+                ("taillight_color".to_string(), UniformType::Float3),
+                ("darkness".to_string(), UniformType::Float1),
             ],
             ..Default::default()
         },
     )
     .unwrap();
+    material.set_uniform("headlight_color", color_to_vector(PALETTE[14]));
+    material.set_uniform("taillight_color", color_to_vector(PALETTE[4]));
+
     material.set_uniform("radius", VIGNETTE_RADIUS);
     material.set_uniform("smoothness", VIGNETTE_SMOOTHNESS);
     material
