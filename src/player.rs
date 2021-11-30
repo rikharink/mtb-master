@@ -15,7 +15,9 @@ pub struct Player {
     pub is_jumping: bool,
     pub can_jump: bool,
     pub is_moving: bool,
+    pedal_theta: f32,
     previous_pedal_theta: f32,
+    wheel_theta: f32,
     previous_wheel_theta: f32,
     pub headlight: Vec2,
     pub taillight: Vec2,
@@ -34,7 +36,9 @@ impl Player {
             is_moving: true,
             is_jumping: false,
             can_jump: false,
+            pedal_theta: 0.,
             previous_pedal_theta: 0.,
+            wheel_theta: 0.,
             previous_wheel_theta: 0.,
             headlight: vec2(0., 0.),
             taillight: vec2(0., 0.),
@@ -72,15 +76,10 @@ impl Player {
         let steer = steering_tube + vec2(line_thickness, -line_thickness);
 
         let crank_length = wheel_radius * 0.5;
-        let pedal_theta = if self.is_moving && !self.is_jumping {
-            (self.previous_pedal_theta + (TAU / 60.)) % TAU
-        } else {
-            self.previous_pedal_theta
-        };
-        self.previous_pedal_theta = pedal_theta;
+        
 
-        let crank_1 = point_on_circle(bottom_bracket, crank_length, pedal_theta);
-        let crank_2 = point_on_circle(bottom_bracket, crank_length, pedal_theta + PI);
+        let crank_1 = point_on_circle(bottom_bracket, crank_length, self.pedal_theta);
+        let crank_2 = point_on_circle(bottom_bracket, crank_length, self.pedal_theta + PI);
 
         let pedal_length = 8.;
         let pedal_vec = vec2(pedal_length, 0.);
@@ -122,23 +121,18 @@ impl Player {
         );
         let spokes = 16.;
 
-        let wheel_speed = if self.is_jumping { 7.5 } else { 15. };
-        let mut wheel_theta = if self.is_moving {
-            (self.previous_wheel_theta + (TAU / wheel_speed)) % TAU
-        } else {
-            self.previous_wheel_theta
-        };
-        self.previous_wheel_theta = wheel_theta;
+        
 
         let increment = TAU / spokes;
+        let mut theta = self.wheel_theta;
         for _i in 0..(spokes as usize) {
             let point_1 =
-                point_on_circle(wheel_1, wheel_radius - line_thickness * 0.5, wheel_theta % TAU);
+                point_on_circle(wheel_1, wheel_radius - line_thickness * 0.5, theta % TAU);
             let point_2 =
-                point_on_circle(wheel_2, wheel_radius - line_thickness * 0.5, wheel_theta % TAU);
+                point_on_circle(wheel_2, wheel_radius - line_thickness * 0.5, theta % TAU);
             draw_line(wheel_1.x, wheel_1.y, point_1.x, point_1.y, 1., PALETTE[12]);
             draw_line(wheel_2.x, wheel_2.y, point_2.x, point_2.y, 1., PALETTE[12]);
-            wheel_theta += increment;
+            theta += increment;
         }
 
         draw_line(
@@ -275,6 +269,21 @@ impl Player {
         self.position += self.velocity * TIMESTEP;
 
         self.speed += 0.0001;
+
+        self.previous_wheel_theta = self.wheel_theta;
+        let wheel_speed = if self.is_jumping { 15. } else { 30. };
+        self.wheel_theta = if self.is_moving {
+            (self.previous_wheel_theta + (TAU / wheel_speed)) % TAU
+        } else {
+            self.previous_wheel_theta
+        };
+
+        self.previous_pedal_theta = self.pedal_theta;
+        self.pedal_theta = if self.is_moving && !self.is_jumping {
+            (self.previous_pedal_theta + (TAU / 30.)) % TAU
+        } else {
+            self.previous_pedal_theta
+        };
     }
 
     pub fn tick(&mut self) {

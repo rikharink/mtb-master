@@ -19,7 +19,8 @@ vec3 pointlight(vec3 color, float range, vec2 position) {
     vec2 directionToLight = normalize(position);
     float lightLambert = (dot(directionToLight, vec2(0., 0.)) + 1.0) * 0.5;
     float attenuation = pow(1.0 - length(position), range);
-    return color * vec3(lightLambert * attenuation);
+    vec3 light = vec3(lightLambert * attenuation);
+    return clamp(color * light, 0., 1.);
 }
 
 vec3 spotlight(vec3 color, float range, vec2 position, vec2 direction) {
@@ -33,7 +34,7 @@ float vignette(vec2 uv, float radius, float smoothness) {
 
 void main() {
     vec3 color = texture2D(Texture, uv).rgb;
-    color += spotlight(headlight_color, 90., uv - headlight, vec2(.2, -.1)) * darkness;
+    color += spotlight(headlight_color, 90., uv - headlight, vec2(.2, -.025)) * darkness;
     color += pointlight(taillight_color, 100., taillight - uv) * darkness;
     color *= vignette(uv, radius, smoothness);
     gl_FragColor = vec4(color, 1.);

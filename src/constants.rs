@@ -1,4 +1,4 @@
-use include_path::include_path_str;
+use include_path::{include_path_bytes, include_path_str};
 use macroquad::prelude::*;
 
 pub const RESOLUTION_X: f32 = 1920.;
@@ -12,6 +12,8 @@ pub const DEFAULT_PLAYER_SPEED: f32 = 0.14;
 pub const DEFAULT_VERTEX_SHADER: &str = include_path_str!("./shaders/default.vert.glsl");
 pub const BACKGROUND_FRAGMENT_SHADER: &str = include_path_str!("./shaders/background.frag.glsl");
 pub const POST_PROCESSSING_FRAGMENT_SHADER: &str = include_path_str!("./shaders/postprocessing.frag.glsl");
+
+pub const ROCK: &[u8] = include_path_bytes!("../assets/rock.png");
 
 pub const VIGNETTE_RADIUS: f32 = 0.95;
 pub const VIGNETTE_SMOOTHNESS: f32 = 0.9;

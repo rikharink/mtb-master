@@ -25,7 +25,6 @@ pub fn get_background_material() -> Material {
                 ("position_sun".to_string(), UniformType::Float2),
                 ("radius_sun".to_string(), UniformType::Float1),
                 ("world_time".to_string(), UniformType::Float1),
-                ("is_night".to_string(), UniformType::Int1),
                 ("player_speed".to_string(), UniformType::Float1),
             ],
             textures: vec!["rgba_noise_texture".to_string()],

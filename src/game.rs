@@ -28,9 +28,38 @@ pub struct Game {
     pub camera: Camera2D,
     pub day_night_cycle_time: f32,
     pub world_time: f32,
+    pub rock: Texture2D,
 }
 
 impl Game {
+    pub fn new(rock: Texture2D) -> Self {
+        let size = vec2(RESOLUTION_X, RESOLUTION_Y);
+        let rect = Rect::new(0., 0., size.x, size.y);
+        let mut camera = Camera2D::from_display_rect(rect);
+        let game_render_target = render_target(size.x as u32, size.y as u32);
+        game_render_target.texture.set_filter(FilterMode::Linear);
+        camera.render_target = Some(game_render_target);
+
+        Self {
+            time: 0.,
+            world_time: 0.,
+            delta_time: 0.,
+            round_time: 0.,
+            background: Background::default(),
+            player: Player::new(vec2(128., 128.), size),
+            obstacles: ObstaclePool::new(10),
+            distance: 0.,
+            spawn_time: 2.,
+            state: GameState::Paused,
+            resolution: size,
+            post_processing_material: get_post_processing_material(),
+            game_render_target,
+            camera,
+            day_night_cycle_time: DAY_NIGHT_CYCLE_TIME,
+            rock,
+        }
+    }
+
     pub fn tick(&mut self) {
         self.delta_time = get_frame_time();
         self.world_time += self.delta_time;
@@ -97,7 +126,6 @@ impl Game {
             .set_uniform("headlight", h_pos);
         self.post_processing_material
             .set_uniform("taillight", t_pos);
-
         gl_use_material(self.post_processing_material);
 
         let sw = screen_width();
@@ -146,7 +174,7 @@ impl Game {
             self.player.speed,
         );
         self.player.render();
-        self.obstacles.render();
+        self.obstacles.render(&self.rock);
         set_default_camera();
 
         self.render_post_processing(self.game_render_target.texture, is_night);
@@ -252,9 +280,7 @@ impl Game {
     }
 
     fn spawn_attempt(&mut self) {
-        if self.round_time % self.spawn_time as f32 <= TIMESTEP {
-            self.obstacles.spawn(self.resolution);
-        }
+        self.obstacles.spawn_attempt(self.resolution, self.round_time);
     }
 
     fn reset(&mut self) {
@@ -264,34 +290,5 @@ impl Game {
         self.obstacles.reset();
         self.distance = 0.;
         self.day_night_cycle_time = DAY_NIGHT_CYCLE_TIME;
-    }
-}
-
-impl Default for Game {
-    fn default() -> Self {
-        let size = vec2(RESOLUTION_X, RESOLUTION_Y);
-        let rect = Rect::new(0., 0., size.x, size.y);
-        let mut camera = Camera2D::from_display_rect(rect);
-        let game_render_target = render_target(size.x as u32, size.y as u32);
-        game_render_target.texture.set_filter(FilterMode::Linear);
-        camera.render_target = Some(game_render_target);
-
-        Self {
-            time: 0.,
-            world_time: 0.,
-            delta_time: 0.,
-            round_time: 0.,
-            background: Background::default(),
-            player: Player::new(vec2(128., 128.), size),
-            obstacles: ObstaclePool::new(10),
-            distance: 0.,
-            spawn_time: 2.,
-            state: GameState::Paused,
-            resolution: size,
-            post_processing_material: get_post_processing_material(),
-            game_render_target,
-            camera,
-            day_night_cycle_time: DAY_NIGHT_CYCLE_TIME,
-        }
     }
 }

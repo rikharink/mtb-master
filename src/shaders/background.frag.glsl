@@ -14,7 +14,6 @@ uniform vec3 color_mountain_2;
 uniform vec3 sky_gradient_start;
 uniform vec3 sky_gradient_end;
 uniform float world_time;
-uniform int is_night;
 uniform float player_speed;
 
 float grad(float p) {

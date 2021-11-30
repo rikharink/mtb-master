@@ -1,7 +1,7 @@
 use crate::{constants::*, shaders::*, util::*};
-use lerp::Lerp;
 use macroquad::prelude::*;
 use std::f32::consts::TAU;
+use lerp::Lerp;
 
 #[derive(Debug, Clone, Lerp)]
 struct Sky {
@@ -45,6 +45,8 @@ pub struct Background {
     sky: Sky,
     material: Material,
     rgba_texture: Texture2D,
+    pub celestial_body_postion: Vec2,
+    pub celestial_body_color: Vec3,
 }
 
 impl Default for Background {
@@ -54,6 +56,8 @@ impl Default for Background {
             sky: Sky::default(),
             material: get_background_material(),
             rgba_texture,
+            celestial_body_postion: vec2(0., 0.),
+            celestial_body_color: vec3(0., 0., 0.),
         }
     }
 }
@@ -78,9 +82,8 @@ impl Background {
         let r = (h * 0.5) + ((w * w) / (8. * h));
 
         let t = (time % cycle_time) / cycle_time;
-        let theta = 0f32.lerp(TAU, t);
+        let theta: f32 = Lerp::lerp(0f32, TAU, t);
         let origin = vec2(w * 0.5, h - r);
-
         let x = w - (origin.x + r * theta.cos());
         let y = origin.y + r * theta.sin();
         vec2(x, y)
@@ -123,7 +126,7 @@ impl Background {
     }
 
     pub fn render(
-        &self,
+        &mut self,
         time: f32,
         world_time: f32,
         resolution: Vec2,
@@ -158,11 +161,13 @@ impl Background {
             .set_uniform("radius_sun", radius_celestial_body);
         self.material
             .set_uniform("position_sun", celestial_body.position);
-        self.material
-            .set_uniform("is_night", celestial_body.is_night as u32);
         self.material.set_uniform("player_speed", 1. + player_speed);
         self.material
             .set_texture("rgba_noise_texture", self.rgba_texture);
+
+        self.celestial_body_postion = celestial_body.position;
+        self.celestial_body_color = celestial_body.color;
+
         gl_use_material(self.material);
         draw_rectangle(0., 0., resolution.x, resolution.y, WHITE);
         gl_use_default_material();

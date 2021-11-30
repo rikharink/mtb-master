@@ -30,6 +30,7 @@ script = '''
 rm -rf ./dist
 mkdir ./dist
 cp -R ./wasm/* ./dist/
+cp -R ./assets/ ./dist/assets/
 cp ./target/wasm32-unknown-unknown/debug/mtb.wasm ./dist/
 '''
 script_runner = "@shell"
