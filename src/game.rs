@@ -214,7 +214,6 @@ impl Game {
         );
 
         let _speed = (self.player.speed * TPS * 3.6).round() as i32;
-        //TODO: display speed
     }
 
     fn render_menu(&self) -> bool {
