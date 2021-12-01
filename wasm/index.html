@@ -31,6 +31,11 @@
     <script src="mq_js_bundle.js"></script>
     <script>
       load("mtb.wasm");
+      let requestFullscreen = () => {
+        document.getElementById("glcanvas").requestFullscreen();
+        document.removeEventListener("click", fullscreenListener);
+      };
+      let fullscreenListener = document.addEventListener("click", requestFullscreen);
     </script>
   </body>
 </html>
