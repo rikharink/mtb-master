@@ -2,6 +2,7 @@
     "theme_color": "#933633",
     "background_color": "#933633",
     "display": "fullscreen",
+    "orientation": "landscape",
     "scope": "/mtb-master/",
     "start_url": "/mtb-master/",
     "name": "Jos Harink's MTB Master",
