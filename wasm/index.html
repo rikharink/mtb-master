@@ -1,6 +1,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="manifest" href="manifest.webmanifest">
     <title>MTB</title>
     <style>
       * {
@@ -33,9 +34,9 @@
       load("mtb.wasm");
       let requestFullscreen = () => {
         document.getElementById("glcanvas").requestFullscreen();
-        document.removeEventListener("click", fullscreenListener);
+        document.removeEventListener("pointerup", fullscreenListener);
       };
-      let fullscreenListener = document.addEventListener("click", requestFullscreen);
+      let fullscreenListener = document.addEventListener("pointerup", requestFullscreen);
     </script>
   </body>
 </html>
