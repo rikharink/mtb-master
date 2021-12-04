@@ -13,7 +13,7 @@ mod util;
 #[macro_use]
 extern crate lazy_static;
 use constants::*;
-use macroquad::{prelude::*, window};
+use macroquad::{prelude::*, window, audio::load_sound};
 
 use game::*;
 
@@ -32,9 +32,25 @@ async fn main() {
     let mut accumulator: f32 = 0.;
     let rock = load_texture("rock.png").await.unwrap();
     rock.set_filter(FilterMode::Nearest);
-    let mut state = Game::new(rock);
 
+    let tree = load_texture("tree.png").await.unwrap();
+    tree.set_filter(FilterMode::Nearest);
+    
+    let crash = load_sound("crash.wav").await.unwrap();
+    let jump = load_sound("jump.wav").await.unwrap();
+    let land = load_sound("land.wav").await.unwrap();
+    let music = load_sound("greensleeves.wav").await.unwrap();
+    
+    let mut state = Game::new(rock, tree, crash, jump, land, music);
     loop {
+        if is_key_released(KeyCode::Escape) {
+            state.state = match state.state {
+                GameState::Paused => GameState::Running,
+                GameState::Running => GameState::Paused,
+                GameState::GameOver => GameState::GameOver,
+            };
+        }
+
         let delta_time = get_frame_time();
         clear_background(PALETTE[0]);
         if delta_time > 1. {

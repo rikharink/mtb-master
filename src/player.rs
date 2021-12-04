@@ -1,7 +1,7 @@
 use std::f32::consts::{PI, TAU};
 
 use crate::{constants::*, geometry::Rectangle, util::*};
-use macroquad::prelude::*;
+use macroquad::{prelude::*, audio::{Sound, play_sound_once, stop_sound}};
 
 #[derive(Debug, Clone)]
 pub struct Player {
@@ -21,10 +21,12 @@ pub struct Player {
     previous_wheel_theta: f32,
     pub headlight: Vec2,
     pub taillight: Vec2,
+    jump_sound: Sound,
+    land_sound: Sound,
 }
 
 impl Player {
-    pub fn new(size: Vec2, resolution: Vec2) -> Self {
+    pub fn new(size: Vec2, resolution: Vec2, jump: Sound, land: Sound) -> Self {
         Self {
             center: vec2((resolution.x - size.x) * 0.5, resolution.y - size.y),
             size,
@@ -42,6 +44,8 @@ impl Player {
             previous_wheel_theta: 0.,
             headlight: vec2(0., 0.),
             taillight: vec2(0., 0.),
+            jump_sound: jump,
+            land_sound: land,
         }
     }
 
@@ -257,8 +261,11 @@ impl Player {
                 self.acceleration = *UP * *GRAVITY;
                 self.velocity = Vec2::ZERO;
                 self.is_jumping = false;
+                stop_sound(self.jump_sound);
+                play_sound_once(self.land_sound);
             }
             self.can_jump = true;
+
         }
 
         if time <= 0.1 {
@@ -290,6 +297,7 @@ impl Player {
         if is_mouse_button_down(MouseButton::Left) && self.can_jump {
             if !self.is_jumping {
                 self.jump();
+                play_sound_once(self.jump_sound);
             }
         }
 

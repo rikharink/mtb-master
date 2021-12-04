@@ -33,13 +33,6 @@ impl Obstacle {
                 ..Default::default()
             },
         );
-        // draw_rectangle(
-        //     self.position.x,
-        //     self.position.y,
-        //     self.size.x,
-        //     self.size.y,
-        //     self.color,
-        // )
     }
 
     fn get_aabb(&self) -> Rectangle {
@@ -47,25 +40,53 @@ impl Obstacle {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ObstaclePool {
     obstacles: Vec<Obstacle>,
     base_chance: f32,
     spawn_chance: f32,
     spawn_interval: f32,
     last_spawn: f32,
-    obstacle_size: Vec2
+    obstacle_size: Vec2,
+    max_obstacle_size: Vec2,
+    settings: ObstaclePoolSettings,
+}
+
+#[derive(Clone)]
+pub struct ObstaclePoolSettings {
+    pub base_spawn_chance: f32,
+    pub spawn_interval: f32,
+    pub base_size: Vec2,
+    pub max_size: Vec2,
+}
+
+impl Default for ObstaclePoolSettings {
+    fn default() -> Self {
+        Self {
+            base_spawn_chance: 0.1,
+            spawn_interval: 2.,
+            base_size: vec2(64., 44.),
+            max_size: vec2(128., 64.),
+        }
+    }
 }
 
 impl ObstaclePool {
-    pub fn new(capacity: usize) -> ObstaclePool {
+    pub fn new(capacity: usize, settings: Option<ObstaclePoolSettings>) -> ObstaclePool {
+        let settings = match settings {
+            Some(x) => x,
+            None => ObstaclePoolSettings::default(),
+        };
+
         ObstaclePool {
             obstacles: Vec::with_capacity(capacity),
-            base_chance: 0.1,
-            spawn_chance: 0.1,
-            spawn_interval: 2.,
+            base_chance: settings.base_spawn_chance,
+            spawn_chance: settings.base_spawn_chance,
+            spawn_interval: settings.spawn_interval,
             last_spawn: 0.,
-            obstacle_size: vec2(64., 44.),
+            obstacle_size: settings.base_size,
+            max_obstacle_size: settings.max_size,
+            settings,
         }
     }
 
@@ -81,28 +102,28 @@ impl ObstaclePool {
             self.base_chance += 0.01;
             self.base_chance = self.base_chance.min(0.9);
             self.spawn_chance = self.base_chance;
-            
+
             let percent: i32 = gen_range(0, 100);
-            self.obstacle_size += match percent 
-            { 
+            self.obstacle_size += match percent {
                 0..33 => vec2(0., 1.),
                 33..66 => vec2(1., 0.),
                 _ => vec2(1., 1.),
             };
 
-            self.obstacle_size = self.obstacle_size.min(vec2(128., 64.));
-            self.obstacles.push(Obstacle::new(self.obstacle_size, resolution));
+            self.obstacle_size = self.obstacle_size.min(self.max_obstacle_size);
+            self.obstacles
+                .push(Obstacle::new(self.obstacle_size, resolution));
         } else {
             self.spawn_chance += 0.05;
         }
     }
 
     pub fn reset(&mut self) {
-        self.spawn_chance = 0.1;
-        self.base_chance = 0.1;
-        self.spawn_interval = 2.;
+        self.spawn_chance = self.settings.base_spawn_chance;
+        self.base_chance = self.spawn_chance;
+        self.spawn_interval = self.settings.spawn_interval;
+        self.obstacle_size = self.settings.base_size;
         self.last_spawn = 0.;
-        self.obstacle_size = vec2(64., 44.);
         self.obstacles.clear();
     }
 
@@ -121,9 +142,9 @@ impl ObstaclePool {
         self.spawn_interval = self.spawn_interval.max(0.5);
     }
 
-    pub fn render(&self, rock: &Texture2D) {
+    pub fn render(&self, texture: &Texture2D) {
         for obstacle in &self.obstacles {
-            obstacle.render(rock);
+            obstacle.render(texture);
         }
     }
 

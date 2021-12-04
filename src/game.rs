@@ -1,8 +1,14 @@
 use crate::{
-    background::Background, constants::*, obstacles::ObstaclePool, player::Player,
+    background::Background,
+    constants::*,
+    obstacles::{ObstaclePool, ObstaclePoolSettings},
+    player::Player,
     shaders::get_post_processing_material,
 };
-use macroquad::prelude::*;
+use macroquad::{
+    audio::{play_sound, play_sound_once, stop_sound, PlaySoundParams, Sound},
+    prelude::*,
+};
 
 #[derive(PartialEq, Clone)]
 pub enum GameState {
@@ -18,6 +24,7 @@ pub struct Game {
     pub delta_time: f32,
     pub background: Background,
     pub player: Player,
+    pub trees: ObstaclePool,
     pub obstacles: ObstaclePool,
     pub spawn_time: f64,
     pub state: GameState,
@@ -29,10 +36,23 @@ pub struct Game {
     pub day_night_cycle_time: f32,
     pub world_time: f32,
     pub rock: Texture2D,
+    pub tree: Texture2D,
+    pub crash_sound: Sound,
+    pub jump_sound: Sound,
+    pub land_sound: Sound,
+    pub music: Sound,
+    pub is_playing_music: bool,
 }
 
 impl Game {
-    pub fn new(rock: Texture2D) -> Self {
+    pub fn new(
+        rock: Texture2D,
+        tree: Texture2D,
+        crash: Sound,
+        jump: Sound,
+        land: Sound,
+        music: Sound,
+    ) -> Self {
         let size = vec2(RESOLUTION_X, RESOLUTION_Y);
         let rect = Rect::new(0., 0., size.x, size.y);
         let mut camera = Camera2D::from_display_rect(rect);
@@ -46,8 +66,18 @@ impl Game {
             delta_time: 0.,
             round_time: 0.,
             background: Background::default(),
-            player: Player::new(vec2(128., 128.), size),
-            obstacles: ObstaclePool::new(10),
+            player: Player::new(vec2(128., 128.), size, jump, land),
+            obstacles: ObstaclePool::new(10, None),
+            trees: ObstaclePool::new(
+                100,
+                Some(ObstaclePoolSettings {
+                    base_spawn_chance: 0.8,
+                    spawn_interval: 10.,
+                    base_size: vec2(343., 500.),
+                    max_size: vec2(343., 500.),
+                    ..Default::default()
+                }),
+            ),
             distance: 0.,
             spawn_time: 2.,
             state: GameState::Paused,
@@ -57,6 +87,12 @@ impl Game {
             camera,
             day_night_cycle_time: DAY_NIGHT_CYCLE_TIME,
             rock,
+            tree,
+            crash_sound: crash,
+            jump_sound: jump,
+            land_sound: land,
+            music,
+            is_playing_music: false,
         }
     }
 
@@ -64,12 +100,11 @@ impl Game {
         self.delta_time = get_frame_time();
         self.world_time += self.delta_time;
 
-        if !self.is_game_over() {
-            self.time = get_time();
-        }
         if self.is_running() {
+            self.time = get_time();
             self.player.tick();
             self.obstacles.tick();
+            self.trees.tick();
             self.round_time += self.delta_time;
         }
     }
@@ -96,6 +131,7 @@ impl Game {
         }
         self.player.step(self.round_time);
         self.obstacles.step(self.player.speed);
+        self.trees.step(self.player.speed * 0.7);
         self.spawn_attempt();
         self.distance += self.player.speed;
 
@@ -103,6 +139,9 @@ impl Game {
             self.player.is_moving = false;
             self.day_night_cycle_time = DAY_NIGHT_CYCLE_TIME / 5.;
             self.state = GameState::GameOver;
+            stop_sound(self.jump_sound);
+            stop_sound(self.land_sound);
+            play_sound_once(self.crash_sound);
             return;
         }
     }
@@ -173,6 +212,7 @@ impl Game {
             self.day_night_cycle_time,
             self.player.speed,
         );
+        self.trees.render(&self.tree);
         self.player.render();
         self.obstacles.render(&self.rock);
         set_default_camera();
@@ -185,6 +225,15 @@ impl Game {
             } else {
                 self.day_night_cycle_time = DAY_NIGHT_CYCLE_TIME;
                 self.state = GameState::Running;
+                if !self.is_playing_music {
+                    play_sound(
+                        self.music,
+                        PlaySoundParams {
+                            looped: true,
+                            ..Default::default()
+                        },
+                    );
+                }
             }
         } else if self.is_game_over() {
             let restart = self.render_game_over();
@@ -280,7 +329,9 @@ impl Game {
     }
 
     fn spawn_attempt(&mut self) {
-        self.obstacles.spawn_attempt(self.resolution, self.round_time);
+        self.obstacles
+            .spawn_attempt(self.resolution, self.round_time);
+        self.trees.spawn_attempt(self.resolution, self.round_time);
     }
 
     fn reset(&mut self) {
@@ -288,6 +339,7 @@ impl Game {
         self.spawn_time = 2.;
         self.player.reset();
         self.obstacles.reset();
+        self.trees.reset();
         self.distance = 0.;
         self.day_night_cycle_time = DAY_NIGHT_CYCLE_TIME;
     }
